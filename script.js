@@ -145,7 +145,10 @@ async function searchRepos() {
         document.querySelector('.search-form__list').remove();
     }
     if(this.value){
-        const res = await fetch(`https://api.github.com/search/repositories?q=${this.value}&per_page=5`);
+        const res = await fetch(`https://api.github.com/search/repositories?q=${this.value}&per_page=5`)
+            .catch(error => {
+                console.log(error);
+            })
         const data = await res.json();
         const resultList = createMyElement('ul', 'search-form__list');
         data.items.forEach( data => {
