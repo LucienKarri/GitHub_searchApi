@@ -1,16 +1,7 @@
-class Repository {
-    constructor(data) {
-        this.name = data.name;
-        this.owner = data.owner.login;
-        this.stars = data.stargazers_count;
-        this.id = data.id;
-    }
-}
-
 function createMyElement( myTag, myClass) {
     const element = document.createElement(myTag);
     if (myClass) {
-        element.classList.add(myClass);
+        element.className = myClass;
     }
     return element;
 }
@@ -23,29 +14,6 @@ const debounce = (fn, debounceTime) => {
             fn.apply(this, args);
         }, debounceTime )
     }
-}
-
-function createLayout() {
-    const wrapper = createMyElement('div', 'wrapper');
-
-    const title = createMyElement('h1');
-    title.textContent = 'Search GitHub repositories';
-    wrapper.appendChild(title);
-
-    return wrapper;
-}
-
-function createForm() {
-    const searchForm = createMyElement('div', 'search-form');
-
-    const searchInput = createMyElement('input', 'search-form__input');
-    searchInput.type = 'text';
-    searchInput.placeholder = 'Type to search...';
-    searchInput.addEventListener('keyup', debounce(searchRepos, 300));
-
-    searchForm.appendChild(searchInput);
-    
-    return searchForm;
 }
 
 function createStorage() {
@@ -64,7 +32,7 @@ function createStorage() {
 
 function fillStorage(obj) {
     const item = createMyElement('li', 'storage__item');
-    item.setAttribute('data-id', `${obj.id}`)
+    item.setAttribute('data-id', obj.id)
     const card = createCard(obj);
     item.appendChild(card);
     return item;
@@ -112,18 +80,24 @@ function getCards() {
     return JSON.parse(localStorage.getItem('cards'));
 }
 
-function pushNewCard(data) {
+function pushNewCard(event) {
     const cards = getCards();
-    if (!cards[data.id]) {
-        cards[data.id] = new Repository(data);
+    if (!cards[event.target.getAttribute('data-id')]) {
+        cards[event.target.getAttribute('data-id')] = {
+            name: event.target.getAttribute('data-name'),
+            owner: event.target.getAttribute('data-owner'),
+            stars: event.target.getAttribute('data-stars'),
+            id: event.target.getAttribute('data-id'),
+        };
         if (Object.keys(cards).length === 1) {
             const storage = createStorage();
-            storage.firstChild.prepend(fillStorage(cards[data.id]))
+            storage.firstChild.prepend(fillStorage(cards[event.target.getAttribute('data-id')]))
             document.querySelector('.wrapper').appendChild(storage);
         } else {
-            document.querySelector('.storage__list').prepend(fillStorage(cards[data.id]));
+            document.querySelector('.storage__list').prepend(fillStorage(cards[event.target.getAttribute('data-id')]));
         }
         localStorage.setItem('cards', JSON.stringify(cards));
+        document.querySelector('.search-form__list').removeEventListener('click', pushNewCard);
         document.querySelector('.search-form__list').remove();
         document.querySelector('.search-form__input').value = '';
     }
@@ -151,22 +125,23 @@ async function searchRepos() {
             const resultList = createMyElement('ul', 'search-form__list');
             data.items.forEach( data => {
                 const resultItem = createMyElement('li', 'search-form__item');
-                resultItem.textContent = `${data.name}`;
-                resultItem.addEventListener('click', () => pushNewCard(data));
+                resultItem.textContent = data.name;
+                resultItem.setAttribute('data-name', data.name);
+                resultItem.setAttribute('data-owner', data.owner.login);
+                resultItem.setAttribute('data-stars', data.stargazers_count);
+                resultItem.setAttribute('data-id', data.id);
                 resultList.appendChild(resultItem);
             } )
             document.querySelector('.search-form').appendChild(resultList);
+            document.querySelector('.search-form__list').addEventListener('click', pushNewCard);
         } else {
             alert(  `Request execution error.\nRequest Status: ${res.status}\nPlease try again later.`);
         }
     }
 }
 
-const wrapper = createLayout();
-const form = createForm();
+const layout = document.querySelector('.wrapper');
+const searchLine = document.querySelector('.search-form__input');
 
-wrapper.appendChild(form);
-
-initLocalData(wrapper);
-
-document.body.prepend(wrapper);
+searchLine.addEventListener('keyup', debounce(searchRepos, 300));
+initLocalData(layout);
