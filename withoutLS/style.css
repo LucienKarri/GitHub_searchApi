@@ -73,7 +73,12 @@ h1 {
     border: none;
     outline: none;
     
+    cursor: pointer;
+
     color: #9E9C9C;
+}
+.search-form__dropdown:hover {
+    text-decoration: underline;
 }
 
 .storage {
