@@ -58,12 +58,22 @@ h1 {
     list-style: none;
 }
 .search-form__item {
+    display: flex;
+    justify-content: space-between;
+
     padding: 0 16px;
     line-height: 42px;
     cursor: default;
 }
 .search-form__item:hover {
     background: #DAE3F9;
+}
+.search-form__dropdown {
+    background: none;
+    border: none;
+    outline: none;
+    
+    color: #9E9C9C;
 }
 
 .storage {

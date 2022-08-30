@@ -67,7 +67,8 @@ function removeCard(id) {
     const cards = JSON.parse(localStorage.getItem('cards'));
     delete cards[id];
     localStorage.setItem('cards', JSON.stringify(cards));
-    document.querySelector(`[data-id = '${id}']`).remove();
+    document.querySelector(`.storage__item[data-id = '${id}']`).remove();
+    document.querySelector(`.search-form__item[data-id = '${id}']`).lastChild.remove();
     if (Object.keys(cards).length === 0) {
         document.querySelector('.storage').remove();
     }
@@ -80,26 +81,36 @@ function getCards() {
     return JSON.parse(localStorage.getItem('cards'));
 }
 
+function clearResult() {
+    document.querySelector('.search-form__list').removeEventListener('click', pushNewCard);
+    document.querySelector('.search-form__list').remove();
+    document.querySelector('.search-form__input').value = '';
+}
+
 function pushNewCard(event) {
     const cards = getCards();
-    if (!cards[event.target.getAttribute('data-id')]) {
-        cards[event.target.getAttribute('data-id')] = {
-            name: event.target.getAttribute('data-name'),
-            owner: event.target.getAttribute('data-owner'),
-            stars: event.target.getAttribute('data-stars'),
-            id: event.target.getAttribute('data-id'),
+    const element = event.target.closest('.search-form__item');
+    if (!cards[element.getAttribute('data-id')]) {
+        cards[element.getAttribute('data-id')] = {
+            name: element.getAttribute('data-name'),
+            owner: element.getAttribute('data-owner'),
+            stars: element.getAttribute('data-stars'),
+            id: element.getAttribute('data-id'),
         };
         if (Object.keys(cards).length === 1) {
             const storage = createStorage();
-            storage.firstChild.prepend(fillStorage(cards[event.target.getAttribute('data-id')]))
+            storage.firstChild.prepend(fillStorage(cards[element.getAttribute('data-id')]))
             document.querySelector('.wrapper').appendChild(storage);
         } else {
-            document.querySelector('.storage__list').prepend(fillStorage(cards[event.target.getAttribute('data-id')]));
+            document.querySelector('.storage__list').prepend(fillStorage(cards[element.getAttribute('data-id')]));
         }
         localStorage.setItem('cards', JSON.stringify(cards));
-        document.querySelector('.search-form__list').removeEventListener('click', pushNewCard);
-        document.querySelector('.search-form__list').remove();
-        document.querySelector('.search-form__input').value = '';
+        clearResult();
+    }
+    if (event.target.classList.contains('search-form__dropdown')) {
+        removeCard(element.dataset.id);
+        element.lastChild.remove();
+        clearResult();
     }
 }
 
@@ -114,6 +125,27 @@ function initLocalData(layout) {
     }
 }
 
+function createSearchItem(data) {
+    const resultItem = createMyElement('li', 'search-form__item');
+    resultItem.setAttribute('data-name', data.name);
+    resultItem.setAttribute('data-owner', data.owner.login);
+    resultItem.setAttribute('data-stars', data.stargazers_count);
+    resultItem.setAttribute('data-id', data.id);
+
+    const resultText = createMyElement('span');
+    resultText.textContent = data.name;
+    resultItem.appendChild(resultText);
+
+    const localData = getCards();
+    if (localData[data.id]) {
+        const btn = createMyElement('button', 'search-form__dropdown');
+        btn.textContent = 'delete';
+        resultItem.appendChild(btn);
+    }
+
+    return resultItem;
+}
+
 async function searchRepos() {
     if(this.value){
         const res = await fetch(`https://api.github.com/search/repositories?q=${this.value}&per_page=5`);
@@ -124,12 +156,7 @@ async function searchRepos() {
             }
             const resultList = createMyElement('ul', 'search-form__list');
             data.items.forEach( data => {
-                const resultItem = createMyElement('li', 'search-form__item');
-                resultItem.textContent = data.name;
-                resultItem.setAttribute('data-name', data.name);
-                resultItem.setAttribute('data-owner', data.owner.login);
-                resultItem.setAttribute('data-stars', data.stargazers_count);
-                resultItem.setAttribute('data-id', data.id);
+                const resultItem = createSearchItem(data);
                 resultList.appendChild(resultItem);
             } )
             document.querySelector('.search-form').appendChild(resultList);
