@@ -68,7 +68,9 @@ function removeCard(id) {
     delete cards[id];
     localStorage.setItem('cards', JSON.stringify(cards));
     document.querySelector(`.storage__item[data-id = '${id}']`).remove();
-    document.querySelector(`.search-form__item[data-id = '${id}']`).lastChild.remove();
+    if (document.querySelector(`.search-form__item[data-id = '${id}']`)) {
+        document.querySelector(`.search-form__item[data-id = '${id}']`).lastChild.remove();
+    }
     if (Object.keys(cards).length === 0) {
         document.querySelector('.storage').remove();
     }
