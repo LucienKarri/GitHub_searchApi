@@ -115,13 +115,13 @@ function initLocalData(layout) {
 }
 
 async function searchRepos() {
-    if (document.querySelector('.search-form__list')) {
-        document.querySelector('.search-form__list').remove();
-    }
     if(this.value){
         const res = await fetch(`https://api.github.com/search/repositories?q=${this.value}&per_page=5`);
         if (res.status === 200) {
             const data = await res.json();
+            if (document.querySelector('.search-form__list')) {
+                document.querySelector('.search-form__list').remove();
+            }
             const resultList = createMyElement('ul', 'search-form__list');
             data.items.forEach( data => {
                 const resultItem = createMyElement('li', 'search-form__item');
@@ -137,6 +137,8 @@ async function searchRepos() {
         } else {
             alert(  `Request execution error.\nRequest Status: ${res.status}\nPlease try again later.`);
         }
+    } else if (document.querySelector('.search-form__list')) {
+        document.querySelector('.search-form__list').remove();
     }
 }
 
