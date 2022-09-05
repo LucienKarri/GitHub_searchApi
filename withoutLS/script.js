@@ -143,4 +143,4 @@ async function searchRepos() {
 
 const searchLine = document.querySelector('.search-form__input');
 
-searchLine.addEventListener('keyup', debounce(searchRepos, 300));
+searchLine.addEventListener('keypress', debounce(searchRepos, 300));
